@@ -49,9 +49,11 @@ pkg_changelog() {
 
 # Prints CVEs missing from the package changelog; empty output means all present.
 missing_cves() {
-  local cl c out=""
+  local cl c out="" list="$CVES"
   cl="$(pkg_changelog)"
-  for c in $CVES; do
+  # HTTP/3 CVE only applies if nginx was built with the QUIC module (not in 1.24.x)
+  nginx -V 2>&1 | grep -q 'http_v3_module' || list="${list/CVE-2026-121810/}"
+  for c in $list; do
     echo "$cl" | grep -q "$c" || out="$out $c"
   done
   echo "${out# }"
